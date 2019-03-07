@@ -6,6 +6,14 @@
 
 void sims2DataFormat::Loop()
 {
+// To run it on a different file, e.g.:
+//                      Root > TFile *_file0 = TFile::Open("ANotherFile.root")
+//                      Root > TTree* newTree
+//                      Root > _file0->GetObject("tree",newTree)
+//                      Root > .L sims2DataFormat.C
+//                      Root > sims2DataFormat t(newTree)
+//                      Root > t.Loop()
+
 //   In a ROOT session, you can do:
 //      root> .L sims2DataFormat.C
 //      root> sims2DataFormat t
@@ -14,7 +22,6 @@ void sims2DataFormat::Loop()
 //      root> t.Show(16);     // Read and show values of entry 16
 //      root> t.Loop();       // Loop on all entries
 //
-
 //     This is the loop skeleton where:
 //    jentry is the global entry number in the chain
 //    ientry is the entry number in the current Tree
@@ -32,13 +39,19 @@ void sims2DataFormat::Loop()
    if (fChain == 0) return;
 
    Long64_t nentries = fChain->GetEntriesFast();
+   cout << nentries << " lines to be processed from file." << endl;
 
 // Parameters to replicate experimental configuration
    Float_t triggerThresh=50; // keV
    Bool_t errorFlags=0;
    Float_t fwhm=4.0; //energy resolution of detectors (%)
    Float_t sigma=fwhm/235.5; // faction rather than %
-
+   
+   cout << "Trigger threshold: " << triggerThresh << " keV" << endl
+      << "FWHM for energy smearing: " << fwhm << "%" << endl;
+   
+   if(errorFlags==kTRUE) cout << endl << "Error warnings inhibited" << endl;
+   
 // My temporary data definations
    Int_t eventCounter=0;
    Int_t amID[2]={-1,-1};
@@ -73,8 +86,8 @@ void sims2DataFormat::Loop()
    
    Int_t *Nvar2 = new Int_t[nAMs];
 
-   TString rfileOut = "sortedData";
-   TFile *f2 = new TFile(rfileOut + "_Ecal_simulated.root","recreate");
+   TString rfileOut = "sortedData_Ecal_simulated.root";
+   TFile *f2 = new TFile(rfileOut,"recreate");
    // Event tree
    TTree *tree2_ev = new TTree("tree2_events","Event tree of E calib data");
    TTree **tree2 = new TTree*[nAMs];
@@ -117,7 +130,6 @@ void sims2DataFormat::Loop()
       eventCounter++;
       
 //      cout << event_eev << " " << nAMsInEvent_eev << " " << nTrigPixels_eev[0] << " " << nTrigPixels_eev[1] << " " << AM_flag_eev[0] << " " << AM_flag_eev[1] << " " << cath_flag_eev[0] << " " << cath_flag_eev[1]  << endl;
-
 
 // Find which AMs and pixels hit
 // Find AMs
@@ -228,6 +240,7 @@ void sims2DataFormat::Loop()
       tree2[im]->Write();
    }
    f2->Close();
+   cout << "Output written to file: " << rfileOut << endl;
    
 } // End of sims2DataFormat::Loop()
 
