@@ -50,7 +50,7 @@ void sims2DataFormat::Loop()
    cout << "Trigger threshold: " << triggerThresh << " keV" << endl
       << "FWHM for energy smearing: " << fwhm << "%" << endl;
    
-   if(errorFlags==kTRUE) cout << endl << "Error warnings inhibited" << endl;
+   if(errorFlags) cout << endl << "Error warnings inhibited" << endl;
    
 // My temporary data definations
    Int_t eventCounter=0;
@@ -136,11 +136,11 @@ void sims2DataFormat::Loop()
       amID[0]=findAM(Z1_a);
       amID[1]=findAM(Z2_a);
       if(amID[0]==-1 || amID[1]==-1) {
-         if(errorFlags==kTRUE) cout << "Error: Gamma ray not in a detector!" << endl;
+         if(errorFlags) cout << "Error: Gamma ray not in a detector!" << endl;
          continue;
       }
       if(amID[0]==amID[1]) {
-         if(errorFlags==kTRUE) cout << "Error: Same AM hit by both gammas!" << endl;
+         if(errorFlags) cout << "Error: Same AM hit by both gammas!" << endl;
          continue;
       }
 // Find pixels
@@ -150,7 +150,7 @@ void sims2DataFormat::Loop()
       pixel[1][1]=findPixelID(amID[1],X2_b,Y2_b);
 
 //      if(pixel[0][0]==-1 || pixel[0][1]==-1) {
-//         if(errorFlags==kTRUE) cout << "Error: Gamma ray not in a pixel! " << endl;
+//         if(errorFlags) cout << "Error: Gamma ray not in a pixel! " << endl;
 //         continue;
 //      }
 
@@ -203,7 +203,8 @@ void sims2DataFormat::Loop()
 //         if(E[amID[im]]<triggerThresh) cout << "Error! Error! " << event_e[amID[im]] << " " << amID[im] << " " << nTrigPixels_e[amID[im]] << endl;
          E_neg[amID[im]]=0;
          time_e[amID[im]]=0;
-         triggerFlag_e[amID[im]]=0;
+         if(E[amID[im]]>triggerThresh) triggerFlag_e[amID[im]]=1;
+         else triggerFlag_e[amID[im]]=0;
          nloop_e[amID[im]]=0;
          timeDetect_e[amID[im]]=0;
          timeDetectPos_e[amID[im]]=0;
@@ -214,6 +215,8 @@ void sims2DataFormat::Loop()
          if(nTrigPixels_e[amID[im]]==2) {
             pixel_e[amID[im]]=pixel[im][pos[im][1]];
             E[amID[im]]=energy[im][pos[im][1]];
+            if(E[amID[im]]>triggerThresh) triggerFlag_e[amID[im]]=1;
+            else triggerFlag_e[amID[im]]=0;
             pos_e[amID[im]]=1;
             tree2[amID[im]]->Fill();
          }
