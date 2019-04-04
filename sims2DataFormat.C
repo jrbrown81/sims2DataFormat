@@ -148,11 +148,11 @@ void sims2DataFormat::Loop()
       pixel[0][1]=findPixelID(amID[0],X1_b,Y1_b);
       pixel[1][0]=findPixelID(amID[1],X2_a,Y2_a);
       pixel[1][1]=findPixelID(amID[1],X2_b,Y2_b);
-
-//      if(pixel[0][0]==-1 || pixel[0][1]==-1) {
-//         if(errorFlags) cout << "Error: Gamma ray not in a pixel! " << endl;
-//         continue;
-//      }
+      
+      if(pixel[0][0]==-1 || pixel[0][1]==-1) {
+         if(errorFlags) cout << "Error: Gamma ray not in a pixel! " << endl;
+         continue;
+      }
 
 // Smear energies
       energy[0][0]=gRandom->Gaus(E1_a,sigma*E1_a);
@@ -179,7 +179,12 @@ void sims2DataFormat::Loop()
          else if(energy[im][pos[im][0]]>triggerThresh && pixel[im][0]!=-1) nTrigPixels[im]=1;
          else nTrigPixels[im]=0;; // skip if no pixels triggered in either AM
       }
-      if(nTrigPixels[0]==0 && nTrigPixels[1]==0) continue;
+
+//      if(nTrigPixels[0]==0 && nTrigPixels[1]==0) continue; // To output singles events
+      if(nTrigPixels[0]==0 || nTrigPixels[1]==0) continue; // To output coincidence events only
+//      if(nTrigPixels[0]!=2 || nTrigPixels[1]!=2) continue; // To output coincidence Compton events only
+
+
 //      if(pixel[0][0]==pixel[0][1]) {
 ////         cout << "Warning: Same pixel hit twice! " << endl;
 //         energy[0][0]+=energy[0][1];
@@ -194,7 +199,6 @@ void sims2DataFormat::Loop()
       for(Int_t im = 0; im < nAMs; im++) {
          event_e[amID[im]]=eventCounter-1;
          nTrigPixels_e[amID[im]]=nTrigPixels[im];
-//         nTrigPixels_e[amID[im]]=nTrigPixels[im];
          AM_e[amID[im]]=amID[im];
          GM_e[amID[im]]=1;
          nAMsInEvent_e[amID[im]]=2;
@@ -211,7 +215,7 @@ void sims2DataFormat::Loop()
          Temp_e[amID[im]]=0;
          pos_e[amID[im]]=0;
          if(nTrigPixels_e[amID[im]]!=0) tree2[amID[im]]->Fill();
-         // if two pixel hits, every thing same except pixel and energy
+         // if two pixel hits, everything same except pixel and energy
          if(nTrigPixels_e[amID[im]]==2) {
             pixel_e[amID[im]]=pixel[im][pos[im][1]];
             E[amID[im]]=energy[im][pos[im][1]];
@@ -272,6 +276,8 @@ Int_t findPixelID(Int_t am, Float_t x, Float_t y)
    }
 //   if(row!=-1 && col!=-1) pixelID=col+(row-1)*11;
    if(row!=-1 && col!=-1) pixelID=col+(row-1)*44;
+   
+//   if(pixelID<0) cout << pixelID << endl;
    
 //   if(pixelID!=-1){
    if(am==0) return pixelID;
